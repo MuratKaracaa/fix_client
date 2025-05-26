@@ -5,7 +5,23 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(Protobuf QUIET)
+
 include(FetchContent)
+
+if(NOT Protobuf_FOUND)
+    message(STATUS "Protocol Buffers not found on system. Fetching from source...")
+    FetchContent_Declare(
+        protobuf
+        GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+        GIT_TAG v25.1  # Use a specific version tag
+        SOURCE_SUBDIR cmake
+    )
+    set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable tests" FORCE)
+    set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
+    set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries" FORCE)
+    FetchContent_MakeAvailable(protobuf)
+endif()
 
 FetchContent_Declare(
     bs_thread_pool
@@ -49,19 +65,23 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(libpqxx)
 
-
-
 file(GLOB_RECURSE SOURCE_FILES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-add_executable(fix_client ${SOURCE_FILES})
+file(GLOB_RECURSE GENERATED_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/gen/*.pb.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/gen/*.pb.h"
+)
 
+
+add_executable(fix_client ${SOURCE_FILES} ${GENERATED_FILES})
 
 target_include_directories(fix_client
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/gen
         ${bs_thread_pool_SOURCE_DIR}/include
         ${quickfix_SOURCE_DIR}/src/C++
         ${quickfix_SOURCE_DIR}/src/C++/fix42
@@ -72,6 +92,7 @@ target_include_directories(fix_client
         ${librdkafka_SOURCE_DIR}/src
         ${libpqxx_SOURCE_DIR}/include
         ${libpqxx_BINARY_DIR}/include
+        ${Protobuf_INCLUDE_DIRS}
 )
 
 target_link_libraries(fix_client
@@ -81,4 +102,5 @@ target_link_libraries(fix_client
         rdkafka
         pqxx
         pthread
+        $<IF:$<BOOL:${Protobuf_FOUND}>,${Protobuf_LIBRARIES},protobuf::libprotobuf>
 )

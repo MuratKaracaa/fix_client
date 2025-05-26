@@ -1,25 +1,19 @@
 #include "execution_report_consumer.h"
 #include <constants.h>
-#include <config_loader.h>
+#include "app_config_loader.h"
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include "test_message.pb.h"
+#include <random>
+#include <string>
 
-ExecutionReportConsumer::ExecutionReportConsumer(moodycamel::ConcurrentQueue<std::string> &execution_report_queue, size_t thread_count, const std::string &topic_name, size_t batch_size)
-    : execution_report_queue_(execution_report_queue), thread_count(thread_count), batch_size(batch_size)
+ExecutionReportConsumer::ExecutionReportConsumer(std::queue<std::string> &execution_report_queue, const std::string &topic_name)
+    : execution_report_queue_(execution_report_queue)
 {
-
-    thread_pool = std::make_unique<BS::thread_pool>(thread_count);
-    consumer_tokens.reserve(thread_count);
-
-    for (size_t i = 0; i < thread_count; ++i)
-    {
-        consumer_tokens.emplace_back(execution_report_queue_);
-    }
     char errstr[512];
-    std::string max_in_flight_calculated = std::to_string(thread_count * max_in_flight_requests_per_connection);
     rd_kafka_conf_t *conf = rd_kafka_conf_new();
-    if (rd_kafka_conf_set(conf, "bootstrap.servers", ConfigLoader::get_env_required("KAFKA_BROKERS").c_str(), errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK)
+    if (rd_kafka_conf_set(conf, "bootstrap.servers", AppConfigLoader::get_env_required("KAFKA_BROKERS").c_str(), errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK)
     {
         rd_kafka_conf_destroy(conf);
         throw std::runtime_error("Failed to set bootstrap.servers: " + std::string(errstr));
@@ -29,7 +23,6 @@ ExecutionReportConsumer::ExecutionReportConsumer(moodycamel::ConcurrentQueue<std
     rd_kafka_conf_set(conf, "retry.backoff.ms", kafka_retry_backoff_ms.c_str(), errstr, sizeof(errstr));
     rd_kafka_conf_set(conf, "delivery.timeout.ms", kafka_delivery_timeout_ms.c_str(), errstr, sizeof(errstr));
     rd_kafka_conf_set(conf, "enable.idempotence", kafka_idempotence.c_str(), errstr, sizeof(errstr));
-    rd_kafka_conf_set(conf, "max.in.flight.requests.per.connection", max_in_flight_calculated.c_str(), errstr, sizeof(errstr));
     rd_kafka_conf_set(conf, "batch.size", std::to_string(execution_report_batch_size).c_str(), errstr, sizeof(errstr));
     rd_kafka_conf_set(conf, "linger.ms", kafka_linger_ms.c_str(), errstr, sizeof(errstr));
     rd_kafka_conf_set(conf, "compression.type", kafka_compression.c_str(), errstr, sizeof(errstr));
@@ -53,30 +46,48 @@ ExecutionReportConsumer::ExecutionReportConsumer(moodycamel::ConcurrentQueue<std
 
 ExecutionReportConsumer::~ExecutionReportConsumer()
 {
+    stop();
+    if (topic)
+    {
+        rd_kafka_topic_destroy(topic);
+    }
     if (producer)
     {
         rd_kafka_destroy(producer);
     }
 }
 
+void ExecutionReportConsumer::process_messages()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> id_dist(1, 10000);
+    std::uniform_real_distribution<double> balance_dist(1.0, 10000.0);
+
+    const std::vector<std::string> sample_names = {
+        "Alpha", "Beta", "Gamma", "Delta", "Epsilon",
+        "Zeta", "Eta", "Theta", "Iota", "Kappa",
+        "Lambda", "Mu", "Nu", "Xi", "Omicron",
+        "Pi", "Rho", "Sigma", "Tau", "Upsilon",
+        "Phi", "Chi", "Psi", "Omega"};
+    std::uniform_int_distribution<size_t> name_dist(0, sample_names.size() - 1);
+
+    while (global_execution_report_consumer_running.load(std::memory_order_relaxed))
+    {
+    }
+}
+
 void ExecutionReportConsumer::start()
 {
-    for (size_t i = 0; i < thread_count; ++i)
-    {
-        thread_pool->submit_task([this, i]()
-                                 {
-            while (global_execution_report_consumer_running.load(std::memory_order_relaxed))
-            {
-
-            } });
-    }
+    global_execution_report_consumer_running.store(true, std::memory_order_relaxed);
+    worker_thread = std::thread(&ExecutionReportConsumer::process_messages, this);
 }
 
 void ExecutionReportConsumer::stop()
 {
     global_execution_report_consumer_running.store(false, std::memory_order_relaxed);
-    if (thread_pool)
+    if (worker_thread.joinable())
     {
-        thread_pool->wait();
+        worker_thread.join();
     }
 }
