@@ -6,15 +6,16 @@
 class ExecutionReportConsumer
 {
 public:
-    ExecutionReportConsumer(std::queue<std::string> &execution_report_queue, const std::string &topic_name);
+    ExecutionReportConsumer(moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue, const std::string &topic_name);
     ~ExecutionReportConsumer();
 
     void start();
     void stop();
 
 private:
-    std::queue<std::string> &execution_report_queue_;
+    moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue_;
     std::thread worker_thread;
+    moodycamel::ConsumerToken consumer_token;
 
     rd_kafka_t *producer;
     rd_kafka_topic_t *topic;

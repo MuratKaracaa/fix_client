@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message AppExecutionReport {
+  string order_id = 1;
+  int32 volume = 2;
+  string timestamp = 3;
+}

@@ -4,12 +4,13 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include "test_message.pb.h"
 #include <random>
 #include <string>
+#include <app_execution_report.pb.h>
 
-ExecutionReportConsumer::ExecutionReportConsumer(std::queue<std::string> &execution_report_queue, const std::string &topic_name)
-    : execution_report_queue_(execution_report_queue)
+ExecutionReportConsumer::ExecutionReportConsumer(moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue, const std::string &topic_name)
+    : execution_report_queue_(execution_report_queue),
+      consumer_token(execution_report_queue)
 {
     char errstr[512];
     rd_kafka_conf_t *conf = rd_kafka_conf_new();
@@ -59,21 +60,26 @@ ExecutionReportConsumer::~ExecutionReportConsumer()
 
 void ExecutionReportConsumer::process_messages()
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> id_dist(1, 10000);
-    std::uniform_real_distribution<double> balance_dist(1.0, 10000.0);
-
-    const std::vector<std::string> sample_names = {
-        "Alpha", "Beta", "Gamma", "Delta", "Epsilon",
-        "Zeta", "Eta", "Theta", "Iota", "Kappa",
-        "Lambda", "Mu", "Nu", "Xi", "Omicron",
-        "Pi", "Rho", "Sigma", "Tau", "Upsilon",
-        "Phi", "Chi", "Psi", "Omega"};
-    std::uniform_int_distribution<size_t> name_dist(0, sample_names.size() - 1);
-
     while (global_execution_report_consumer_running.load(std::memory_order_relaxed))
     {
+        std::vector<AppExecutionReport> app_execution_reports;
+        size_t size = execution_report_queue_.try_dequeue_bulk(consumer_token, app_execution_reports.data(), INT_MAX);
+        if (size > 0)
+        {
+            for (auto &app_execution_report : app_execution_reports)
+            {
+                std::string serialized_app_execution_report;
+                app_execution_report.SerializeToString(&serialized_app_execution_report);
+                rd_kafka_produce(topic, RD_KAFKA_PARTITION_UA, RD_KAFKA_MSG_F_COPY,
+                                 static_cast<void *>(const_cast<char *>(serialized_app_execution_report.c_str())),
+                                 serialized_app_execution_report.size(), NULL, 0, NULL);
+            }
+        }
+        else
+        {
+            std::this_thread::yield();
+        }
+        rd_kafka_poll(producer, 0);
     }
 }
 
