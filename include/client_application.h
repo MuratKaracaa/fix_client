@@ -7,17 +7,19 @@
 #include <quickfix/Message.h>
 #include <quickfix/DataDictionary.h>
 #include "app_execution_report.pb.h"
+#include <concurrentqueue.h>
 
 class ClientApplication : public FIX::Application, public FIX::MessageCracker
 {
 private:
-    std::queue<AppExecutionReport> &execution_report_queue_;
+    moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue_;
+    moodycamel::ConcurrentQueue<AppMarketData> &market_data_queue_;
     FIX::SessionID session_id_;
 
     void process_messages();
 
 public:
-    ClientApplication(std::queue<AppExecutionReport> &execution_report_queue);
+    ClientApplication(moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue, moodycamel::ConcurrentQueue<AppMarketData> &market_data_queue);
     ~ClientApplication();
 
     void onCreate(const FIX::SessionID &session_id) override;
