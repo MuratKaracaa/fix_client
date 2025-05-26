@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include "order_side.h"
 #include "order_type.h"

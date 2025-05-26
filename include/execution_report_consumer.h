@@ -1,5 +1,6 @@
-#include <concurrentqueue.h>
-#include <rdkafka.h>
+#pragma once
+#include "concurrentqueue.h"
+#include "rdkafka.h"
 #include <atomic>
 #include <thread>
 #include "app_execution_report.pb.h"

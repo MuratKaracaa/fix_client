@@ -1,6 +1,8 @@
 #include "mapper.h"
-#include <quickfix/FieldMap.h>
-#include <quickfix/Field.h>
+#include "FieldMap.h"
+#include "Field.h"
+#include "ExecutionReport.h"
+#include "MarketDataSnapshotFullRefresh.h"
 
 std::optional<AppExecutionReport> Mapper::toAppExecutionReport(const FIX42::ExecutionReport &message)
 {

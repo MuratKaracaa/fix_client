@@ -1,13 +1,14 @@
-#include <queue>
-#include <quickfix/Application.h>
-#include <quickfix/MessageCracker.h>
-#include <quickfix/Session.h>
-#include <quickfix/SessionID.h>
-#include <quickfix/SessionSettings.h>
-#include <quickfix/Message.h>
-#include <quickfix/DataDictionary.h>
+#pragma once
+#include "Application.h"
+#include "MessageCracker.h"
+#include "Session.h"
+#include "SessionID.h"
+#include "SessionSettings.h"
+#include "Message.h"
+#include "DataDictionary.h"
 #include "app_execution_report.pb.h"
-#include <concurrentqueue.h>
+#include "concurrentqueue.h"
+#include "app_market_data.h"
 
 class ClientApplication : public FIX::Application, public FIX::MessageCracker
 {

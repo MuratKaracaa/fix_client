@@ -1,12 +1,12 @@
 #include "execution_report_consumer.h"
-#include <constants.h>
+#include "constants.h"
 #include "app_config_loader.h"
 #include <iostream>
 #include <chrono>
 #include <thread>
 #include <random>
 #include <string>
-#include <app_execution_report.pb.h>
+#include "app_execution_report.pb.h"
 
 ExecutionReportConsumer::ExecutionReportConsumer(moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue, const std::string &topic_name)
     : execution_report_queue_(execution_report_queue),

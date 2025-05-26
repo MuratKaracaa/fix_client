@@ -1,7 +1,8 @@
+#pragma once
 #include "app_execution_report.pb.h"
 #include "app_market_data.h"
-#include "ExecutionReport.h"
-#include <quickfix/fix42/MarketDataSnapshotFullRefresh.h>
+#include <ExecutionReport.h>
+#include "MarketDataSnapshotFullRefresh.h"
 
 class Mapper
 {
