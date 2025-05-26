@@ -2,6 +2,7 @@
 #include <rdkafka.h>
 #include <atomic>
 #include <thread>
+#include "app_execution_report.pb.h"
 
 class ExecutionReportConsumer
 {
@@ -21,4 +22,5 @@ private:
     rd_kafka_topic_t *topic;
 
     void process_messages();
+    void publish_to_kafka(std::string &app_execution_report_serialized);
 };

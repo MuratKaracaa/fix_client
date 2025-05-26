@@ -3,10 +3,11 @@
 #include <constants.h>
 #include <thread>
 #include <chrono>
+#include <app_execution_report.pb.h>
 
 int main()
 {
-    std::queue<std::string> execution_report_queue;
+    moodycamel::ConcurrentQueue<AppExecutionReport> execution_report_queue;
     moodycamel::ConcurrentQueue<std::string> market_data_update_queue;
 
     ExecutionReportConsumer execution_report_consumer(execution_report_queue, kafka_topic_name);

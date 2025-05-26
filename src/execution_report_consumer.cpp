@@ -62,22 +62,21 @@ void ExecutionReportConsumer::process_messages()
 {
     while (global_execution_report_consumer_running.load(std::memory_order_relaxed))
     {
-        std::vector<AppExecutionReport> app_execution_reports;
-        size_t size = execution_report_queue_.try_dequeue_bulk(consumer_token, app_execution_reports.data(), INT_MAX);
+        std::vector<AppExecutionReport> app_execution_reports(execution_report_consuming_batch_size);
+        size_t size = execution_report_queue_.try_dequeue_bulk(consumer_token, app_execution_reports.data(), execution_report_consuming_batch_size);
         if (size > 0)
         {
-            for (auto &app_execution_report : app_execution_reports)
+            for (size_t i = 0; i < size; ++i)
             {
+                AppExecutionReport app_execution_report = std::move(app_execution_reports[i]);
                 std::string serialized_app_execution_report;
                 app_execution_report.SerializeToString(&serialized_app_execution_report);
-                rd_kafka_produce(topic, RD_KAFKA_PARTITION_UA, RD_KAFKA_MSG_F_COPY,
-                                 static_cast<void *>(const_cast<char *>(serialized_app_execution_report.c_str())),
-                                 serialized_app_execution_report.size(), NULL, 0, NULL);
+                publish_to_kafka(serialized_app_execution_report);
             }
         }
         else
         {
-            std::this_thread::yield();
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         rd_kafka_poll(producer, 0);
     }
@@ -96,4 +95,20 @@ void ExecutionReportConsumer::stop()
     {
         worker_thread.join();
     }
+
+    AppExecutionReport app_execution_report;
+    while (execution_report_queue_.try_dequeue(app_execution_report))
+    {
+        std::string serialized_app_execution_report;
+        app_execution_report.SerializeToString(&serialized_app_execution_report);
+        publish_to_kafka(serialized_app_execution_report);
+    }
+    rd_kafka_poll(producer, 0);
+}
+
+void ExecutionReportConsumer::publish_to_kafka(std::string &app_execution_report_serialized)
+{
+    rd_kafka_produce(topic, RD_KAFKA_PARTITION_UA, RD_KAFKA_MSG_F_COPY,
+                     static_cast<void *>(const_cast<char *>(app_execution_report_serialized.c_str())),
+                     app_execution_report_serialized.size(), NULL, 0, NULL);
 }
