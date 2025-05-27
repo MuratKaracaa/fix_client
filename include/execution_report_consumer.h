@@ -1,14 +1,14 @@
 #pragma once
 #include "concurrentqueue.h"
-#include "rdkafka.h"
 #include <atomic>
 #include <thread>
 #include "app_execution_report.pb.h"
+#include "kafka_connector.h"
 
 class ExecutionReportConsumer
 {
 public:
-    ExecutionReportConsumer(moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue, const std::string &topic_name);
+    ExecutionReportConsumer(moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue, KafkaConnector &kafka_connector);
     ~ExecutionReportConsumer();
 
     void start();
@@ -16,12 +16,9 @@ public:
 
 private:
     moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue_;
+    KafkaConnector &kafka_connector;
     std::thread worker_thread;
     moodycamel::ConsumerToken consumer_token;
 
-    rd_kafka_t *producer;
-    rd_kafka_topic_t *topic;
-
     void process_messages();
-    void publish_to_kafka(std::string &app_execution_report_serialized);
 };
