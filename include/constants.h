@@ -31,3 +31,5 @@ const std::string rabbitmq_queue_name = AppConfigLoader::get_env_or_default("RAB
 const std::string database_connection_string = AppConfigLoader::get_env_required("DATABASE_CONNECTION_STRING");
 
 const std::string fetch_outbox_messages_query = "SELECT * FROM stock_update_outbox";
+
+const std::string purge_outbox_messages_query = "DELETE FROM stock_update_outbox";
