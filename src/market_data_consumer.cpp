@@ -56,14 +56,14 @@ void MarketDataConsumer::stop()
     global_market_data_consumer_running.store(false, std::memory_order_relaxed);
     thread_pool->wait();
 
-    std::vector<AppMarketData> app_market_data;
+    std::vector<AppMarketData> app_market_data_vector;
     AppMarketData app_market_data;
     while (market_data_queue.try_dequeue(app_market_data))
     {
-        app_market_data.emplace_back(std::move(app_market_data));
+        app_market_data_vector.emplace_back(std::move(app_market_data));
     }
 
-    process_messages(app_market_data, connections[0], app_market_data.size());
+    process_messages(app_market_data_vector, connections[0], app_market_data_vector.size());
 
     for (pqxx::connection &connection : connections)
     {
