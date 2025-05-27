@@ -6,10 +6,11 @@
 
 inline std::atomic<bool> global_execution_report_consumer_running{false};
 inline std::atomic<bool> global_market_data_consumer_running{false};
+inline std::atomic<bool> global_outbox_relay_running{false};
 
-const size_t max_in_flight_requests_per_connection = AppConfigLoader::get_env_or_default("KAFKA_MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION", 5);
-const size_t execution_report_batch_size = AppConfigLoader::get_env_or_default("KAFKA_BATCH_SIZE", 262144);
-const size_t execution_report_consuming_batch_size = AppConfigLoader::get_env_or_default("KAFKA_EXECUTION_REPORT_CONSUMING_BATCH_SIZE", 10000);
+const int max_in_flight_requests_per_connection = AppConfigLoader::get_env_or_default("KAFKA_MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION", 5);
+const int execution_report_batch_size = AppConfigLoader::get_env_or_default("KAFKA_BATCH_SIZE", 262144);
+const int execution_report_consuming_batch_size = AppConfigLoader::get_env_or_default("KAFKA_EXECUTION_REPORT_CONSUMING_BATCH_SIZE", 10000);
 const std::string kafka_acks = AppConfigLoader::get_env_or_default("KAFKA_ACKS", "all");
 const std::string kafka_retries = AppConfigLoader::get_env_or_default("KAFKA_RETRIES", "2147483647");
 const std::string kafka_retry_backoff_ms = "100";
@@ -21,4 +22,12 @@ const std::string kafka_queue_buffering_max_messages = AppConfigLoader::get_env_
 const std::string kafka_queue_buffering_max_kbytes = AppConfigLoader::get_env_or_default("KAFKA_QUEUE_BUFFERING_MAX_KBYTES", "4194304");
 const std::string kafka_topic_name = AppConfigLoader::get_env_or_default("KAFKA_EXECUTION_REPORT_TOPIC_NAME", "execution_report");
 
+const std::string rabbitmq_hostname = AppConfigLoader::get_env_required("RABBITMQ_HOSTNAME");
+const int rabbitmq_port = std::stoi(AppConfigLoader::get_env_required("RABBITMQ_PORT"));
+const std::string rabbitmq_username = AppConfigLoader::get_env_required("RABBITMQ_USERNAME");
+const std::string rabbitmq_password = AppConfigLoader::get_env_required("RABBITMQ_PASSWORD");
+const std::string rabbitmq_queue_name = AppConfigLoader::get_env_or_default("RABBITMQ_QUEUE_NAME", "stock_update_outbox");
+
 const std::string database_connection_string = AppConfigLoader::get_env_required("DATABASE_CONNECTION_STRING");
+
+const std::string fetch_outbox_messages_query = "SELECT * FROM stock_update_outbox";

@@ -1,12 +1,12 @@
 #include "rabbit_mq_connector.h"
+#include "constants.h"
 
-RabbitMQConnector::RabbitMQConnector()
+RabbitMQConnector::~RabbitMQConnector()
 {
     disconnect();
 }
 
-bool RabbitMQConnector::connect(const std::string &hostname, int port,
-                                const std::string &username, const std::string &password)
+bool RabbitMQConnector::connect()
 {
     conn = amqp_new_connection();
     socket = amqp_tcp_socket_new(conn);
@@ -17,7 +17,7 @@ bool RabbitMQConnector::connect(const std::string &hostname, int port,
         return false;
     }
 
-    int status = amqp_socket_open(socket, hostname.c_str(), port);
+    int status = amqp_socket_open(socket, rabbitmq_hostname.c_str(), rabbitmq_port);
     if (status)
     {
         std::cerr << "Opening TCP socket failed" << std::endl;
@@ -26,7 +26,7 @@ bool RabbitMQConnector::connect(const std::string &hostname, int port,
 
     amqp_rpc_reply_t reply = amqp_login(conn, "/", 0, 131072, 0,
                                         AMQP_SASL_METHOD_PLAIN,
-                                        username.c_str(), password.c_str());
+                                        rabbitmq_username.c_str(), rabbitmq_password.c_str());
     if (reply.reply_type != AMQP_RESPONSE_NORMAL)
     {
         std::cerr << "Login failed" << std::endl;

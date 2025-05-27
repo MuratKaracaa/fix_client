@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 
-size_t AppConfigLoader::get_env_or_default(const std::string &env_var, const size_t &default_value)
+int AppConfigLoader::get_env_or_default(const std::string &env_var, const size_t &default_value)
 {
     const char *value = std::getenv(env_var.c_str());
     if (value)

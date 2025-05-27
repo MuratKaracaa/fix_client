@@ -15,10 +15,9 @@ private:
     amqp_socket_t *socket;
 
 public:
-    ~RabbitMQConnector();
+    ~RabbitMQConnector() noexcept;
 
-    bool connect(const std::string &hostname, int port,
-                 const std::string &username, const std::string &password);
+    bool connect();
 
     bool declareQueue(const std::string &queueName);
 
