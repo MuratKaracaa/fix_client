@@ -64,6 +64,13 @@ void MarketDataConsumer::stop()
     }
 
     process_messages(app_market_data, connections[0], app_market_data.size());
+
+    for (pqxx::connection &connection : connections)
+    {
+        connection.close();
+    }
+    connections.clear();
+    consumer_tokens.clear();
 }
 
 void MarketDataConsumer::process_messages(std::vector<AppMarketData> &app_market_data, pqxx::connection &connection, size_t count)
