@@ -3,7 +3,7 @@
 #include "app_config_loader.h"
 #include <stdexcept>
 
-KafkaConnector::KafkaConnector(const std::string &topic_name)
+KafkaConnector::KafkaConnector()
 {
     char errstr[512];
     rd_kafka_conf_t *conf = rd_kafka_conf_new();
@@ -30,7 +30,7 @@ KafkaConnector::KafkaConnector(const std::string &topic_name)
         throw std::runtime_error("Failed to create producer: " + std::string(errstr));
     }
 
-    topic = rd_kafka_topic_new(producer, topic_name.c_str(), NULL);
+    topic = rd_kafka_topic_new(producer, kafka_topic_name.c_str(), NULL);
     if (!topic)
     {
         rd_kafka_destroy(producer);

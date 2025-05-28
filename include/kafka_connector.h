@@ -5,7 +5,7 @@
 class KafkaConnector
 {
 public:
-    KafkaConnector(const std::string &topic_name);
+    KafkaConnector();
     ~KafkaConnector();
 
     void publish_message(std::string &serialized_message);
