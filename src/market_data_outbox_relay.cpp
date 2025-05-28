@@ -39,7 +39,7 @@ void MarketDataOutboxRelay::process_outbox_messages()
             messages->Add(std::move(app_market_data_outbox_message));
         }
         std::string serialized_message_list = app_market_data_outbox_message_list.SerializeAsString();
-        bool publish_result = rabbitmq_connector.publishMessage(rabbitmq_queue_name, serialized_message_list);
+        bool publish_result = rabbitmq_connector.publishMessage(serialized_message_list);
         if (publish_result)
         {
             work.exec(purge_outbox_messages_query);
