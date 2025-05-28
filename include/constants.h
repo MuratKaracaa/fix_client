@@ -7,6 +7,7 @@
 inline std::atomic<bool> global_execution_report_consumer_running{false};
 inline std::atomic<bool> global_market_data_consumer_running{false};
 inline std::atomic<bool> global_outbox_relay_running{false};
+inline std::atomic<bool> global_incoming_order_relay_running{false};
 
 const int max_in_flight_requests_per_connection = AppConfigLoader::get_env_or_default("KAFKA_MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION", 5);
 const int execution_report_batch_size = AppConfigLoader::get_env_or_default("KAFKA_BATCH_SIZE", 262144);
@@ -31,5 +32,6 @@ const std::string rabbitmq_queue_name = AppConfigLoader::get_env_or_default("RAB
 const std::string database_connection_string = AppConfigLoader::get_env_required("DATABASE_CONNECTION_STRING");
 
 const std::string fetch_outbox_messages_query = "SELECT * FROM stock_update_outbox";
-
+const std::string fetch_incoming_orders_query = "SELECT * FROM incoming_orders";
 const std::string purge_outbox_messages_query = "DELETE FROM stock_update_outbox";
+const std::string purge_incoming_orders_query = "DELETE FROM incoming_orders";

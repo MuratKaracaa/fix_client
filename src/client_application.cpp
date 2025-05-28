@@ -2,9 +2,10 @@
 #include "app_execution_report.pb.h"
 #include "mapper.h"
 
-ClientApplication::ClientApplication(moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue, moodycamel::ConcurrentQueue<AppMarketData> &market_data_queue)
+ClientApplication::ClientApplication(moodycamel::ConcurrentQueue<AppExecutionReport> &execution_report_queue, moodycamel::ConcurrentQueue<AppMarketData> &market_data_queue, FIX::SessionID &session_id)
     : execution_report_queue_(execution_report_queue),
-      market_data_queue_(market_data_queue)
+      market_data_queue_(market_data_queue),
+      session_id_(session_id)
 {
 }
 
