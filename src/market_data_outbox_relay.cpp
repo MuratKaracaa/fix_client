@@ -27,17 +27,43 @@ void MarketDataOutboxRelay::process_outbox_messages()
     {
         pqxx::work work(connection);
         pqxx::result result = work.exec(fetch_outbox_messages_query);
-        AppMarketDataOutboxMessageList app_market_data_outbox_message_list;
-        auto *messages = app_market_data_outbox_message_list.mutable_messages();
-        messages->Reserve(result.size());
+
+        std::unordered_map<std::string, std::pair<std::string, double>> latest_data_map;
+
         for (const auto &row : result)
         {
+            std::string stock_symbol = row["stock_symbol"].as<std::string>();
+            std::string timestamp = row["latest_trading_price_time_stamp"].as<std::string>();
+            double latest_price = row["latest_trading_price"].as<double>();
+
+            if (latest_data_map.contains(stock_symbol))
+            {
+                auto &pair = latest_data_map[stock_symbol];
+                if (timestamp > pair.first)
+                {
+                    pair.first = timestamp;
+                    pair.second = latest_price;
+                }
+            }
+            else
+            {
+                latest_data_map[stock_symbol] = std::make_pair(timestamp, latest_price);
+            }
+        }
+
+        AppMarketDataOutboxMessageList app_market_data_outbox_message_list;
+        auto *messages = app_market_data_outbox_message_list.mutable_messages();
+        messages->Reserve(latest_data_map.size());
+
+        for (const auto &[stock_symbol, pair] : latest_data_map)
+        {
             AppMarketDataOutboxMessage app_market_data_outbox_message;
-            app_market_data_outbox_message.set_stock_symbol(row["stock_symbol"].as<std::string>());
-            app_market_data_outbox_message.set_latest_price(row["latest_trading_price"].as<double>());
-            app_market_data_outbox_message.set_timestamp(row["latest_trading_price_time_stamp"].as<std::string>());
+            app_market_data_outbox_message.set_stock_symbol(stock_symbol);
+            app_market_data_outbox_message.set_latest_price(pair.second);
+            app_market_data_outbox_message.set_timestamp(pair.first);
             messages->Add(std::move(app_market_data_outbox_message));
         }
+
         std::string serialized_message_list = app_market_data_outbox_message_list.SerializeAsString();
         bool publish_result = rabbitmq_connector.publishMessage(serialized_message_list);
         if (publish_result)
