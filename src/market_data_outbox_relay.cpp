@@ -1,27 +1,27 @@
-#include "outbox_relay.h"
+#include "market_data_outbox_relay.h"
 #include "constants.h"
 #include "app_market_data_outbox_message.pb.h"
 
-OutboxRelay::OutboxRelay(RabbitMQConnector &rabbitmq_connector)
+MarketDataOutboxRelay::MarketDataOutboxRelay(RabbitMQConnector &rabbitmq_connector)
     : rabbitmq_connector(rabbitmq_connector)
 {
     connection = pqxx::connection(database_connection_string);
 }
 
-void OutboxRelay::start()
+void MarketDataOutboxRelay::start()
 {
     global_outbox_relay_running.store(true, std::memory_order_relaxed);
 
-    worker_thread = std::thread(&OutboxRelay::process_outbox_messages, this);
+    worker_thread = std::thread(&MarketDataOutboxRelay::process_outbox_messages, this);
 }
 
-void OutboxRelay::stop()
+void MarketDataOutboxRelay::stop()
 {
     global_outbox_relay_running.store(false, std::memory_order_relaxed);
     worker_thread.join();
 }
 
-void OutboxRelay::process_outbox_messages()
+void MarketDataOutboxRelay::process_outbox_messages()
 {
     while (global_outbox_relay_running.load(std::memory_order_relaxed))
     {

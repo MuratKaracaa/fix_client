@@ -3,7 +3,7 @@
 #include "pqxx/pqxx"
 #include "rabbit_mq_connector.h"
 
-class OutboxRelay
+class MarketDataOutboxRelay
 {
 private:
     std::thread worker_thread;
@@ -13,7 +13,7 @@ private:
     void process_outbox_messages();
 
 public:
-    OutboxRelay(RabbitMQConnector &rabbitmq_connector);
+    MarketDataOutboxRelay(RabbitMQConnector &rabbitmq_connector);
 
     void start();
     void stop();
