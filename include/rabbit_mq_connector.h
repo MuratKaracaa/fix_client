@@ -20,9 +20,9 @@ public:
 
     bool connect();
 
-    bool declareQueue(const std::string &queueName);
+    bool setupFanoutExchange(const std::string &exchangeName);
 
-    bool publishMessage(const std::string &queueName, const std::string &message);
+    bool publishMessage(const std::string &message);
 
     void disconnect();
 };

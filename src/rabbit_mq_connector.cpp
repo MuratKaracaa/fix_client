@@ -44,17 +44,18 @@ bool RabbitMQConnector::connect()
     return true;
 }
 
-bool RabbitMQConnector::declareQueue(const std::string &queueName)
+bool RabbitMQConnector::setupFanoutExchange(const std::string &exchangeName)
 {
-    amqp_queue_declare_ok_t *r = amqp_queue_declare(
-        conn, 1, amqp_cstring_bytes(queueName.c_str()),
+    amqp_exchange_declare(
+        conn, 1, amqp_cstring_bytes(exchangeName.c_str()),
+        amqp_cstring_bytes("fanout"),
         0, 1, 0, 0, amqp_empty_table);
 
     amqp_rpc_reply_t reply = amqp_get_rpc_reply(conn);
     return reply.reply_type == AMQP_RESPONSE_NORMAL;
 }
 
-bool RabbitMQConnector::publishMessage(const std::string &queueName, const std::string &message)
+bool RabbitMQConnector::publishMessage(const std::string &message)
 {
     amqp_basic_properties_t props;
     props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
@@ -64,8 +65,8 @@ bool RabbitMQConnector::publishMessage(const std::string &queueName, const std::
     int result = amqp_basic_publish(
         conn,
         1,
+        amqp_cstring_bytes(rabbitmq_exchange_name.c_str()),
         amqp_cstring_bytes(""),
-        amqp_cstring_bytes(queueName.c_str()),
         0,
         0,
         &props,

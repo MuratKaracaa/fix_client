@@ -12,7 +12,7 @@
 #include "client_application.h"
 #include "incoming_order_relay.h"
 #include "rabbit_mq_connector.h"
-#include "outbox_relay.h"
+#include "market_data_outbox_relay.h"
 #include "FileStore.h"
 #include "FileLog.h"
 #include "SocketInitiator.h"
@@ -27,10 +27,21 @@ int main()
     {
         KafkaConnector kafka_connector;
         RabbitMQConnector rabbitmq_connector;
+
+        if (!rabbitmq_connector.connect())
+        {
+            throw std::runtime_error("Failed to connect to RabbitMQ");
+        }
+
+        if (!rabbitmq_connector.setupFanoutExchange(rabbitmq_exchange_name))
+        {
+            throw std::runtime_error("Failed to setup fanout exchange");
+        }
+
         ExecutionReportConsumer execution_report_consumer(execution_report_queue, kafka_connector);
         MarketDataConsumer market_data_consumer(market_data_update_queue, 8, 1024);
         IncomingOrderRelay incoming_order_relay(session_id);
-        OutboxRelay outbox_relay(rabbitmq_connector);
+        MarketDataOutboxRelay market_data_outbox_relay(rabbitmq_connector);
 
         std::string config_file = "fix_client.cfg";
         FIX::SessionSettings session_settings(config_file);
@@ -42,7 +53,7 @@ int main()
         execution_report_consumer.start();
         market_data_consumer.start();
         incoming_order_relay.start();
-        outbox_relay.start();
+        market_data_outbox_relay.start();
 
         initiator.start();
 
@@ -51,7 +62,7 @@ int main()
         execution_report_consumer.stop();
         market_data_consumer.stop();
         incoming_order_relay.stop();
-        outbox_relay.stop();
+        market_data_outbox_relay.stop();
     }
     catch (const std::exception &e)
     {

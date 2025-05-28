@@ -28,6 +28,7 @@ const int rabbitmq_port = std::stoi(AppConfigLoader::get_env_required("RABBITMQ_
 const std::string rabbitmq_username = AppConfigLoader::get_env_required("RABBITMQ_USERNAME");
 const std::string rabbitmq_password = AppConfigLoader::get_env_required("RABBITMQ_PASSWORD");
 const std::string rabbitmq_queue_name = AppConfigLoader::get_env_or_default("RABBITMQ_QUEUE_NAME", "stock_update_outbox");
+const std::string rabbitmq_exchange_name = AppConfigLoader::get_env_or_default("RABBITMQ_EXCHANGE_NAME", "market_data_fanout");
 
 const std::string database_connection_string = AppConfigLoader::get_env_required("DATABASE_CONNECTION_STRING");
 
