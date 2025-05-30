@@ -25,7 +25,7 @@ flowchart TD
     subgraph SharedResources[Shared Resources]
         Kafka[Kafka]
         DB[(PostgreSQL)]
-        RMQ[RabbitMQ]
+        RDS[Redis]
     end
 
     SS[Stock Service]
@@ -39,7 +39,7 @@ flowchart TD
     ERC -->|Publish| Kafka
     MDC -->|Update Prices & Create Outbox| DB
     DB -->|Poll Outbox| MDOR
-    MDOR -->|Publish Updates| RMQ
+    MDOR -->|Publish Updates| RDS
 
     SS -->|Place Orders| DB
     DB -->|Poll Orders| IOR
@@ -79,7 +79,7 @@ flowchart TD
 
 - Implements transactional outbox pattern
 - Polls outbox table for stock updates
-- Publishes updates to RabbitMQ
+- Publishes updates to Redis
 - Ensures reliable delivery of market data
 
 ## Performance Considerations
@@ -110,14 +110,14 @@ flowchart TD
 Configurable via environment variables:
 
 - Kafka settings (batch sizes, compression, retries)
-- RabbitMQ connection details
+- Redis connection details
 - Database connection string
 - Processing parameters (thread counts, batch sizes)
 
 ## Technical Stack
 
 - **Languages & Standards**: C++23
-- **Messaging**: Apache Kafka, RabbitMQ
+- **Messaging**: Apache Kafka, Redis
 - **Database**: PostgreSQL
 - **Libraries**:
   - QuickFIX (FIX protocol)
@@ -125,7 +125,7 @@ Configurable via environment variables:
   - moodycamel::ConcurrentQueue (lock-free queue)
   - BS::thread_pool (thread management)
   - librdkafka (Kafka client)
-  - rabbitmq-c (RabbitMQ client)
+  - hiredis (Redis client)
   - libpqxx (PostgreSQL client)
 
 ## Building the Project
