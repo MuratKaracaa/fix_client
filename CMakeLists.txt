@@ -10,7 +10,7 @@ include(FetchContent)
 FetchContent_Declare(
     abseil
     GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-    GIT_TAG 20240116.2
+    GIT_TAG 20240722.0
 )
 
 set(ABSL_ENABLE_INSTALL ON)
@@ -23,16 +23,14 @@ FetchContent_Declare(
     GIT_TAG v29.3
 )
 
-set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(protobuf_BUILD_PROTOC_BINARIES ON CACHE BOOL "" FORCE)
 set(protobuf_ABSL_PROVIDER "package" CACHE STRING "" FORCE)
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(protobuf)
 
 FetchContent_Declare(
     bs_thread_pool
     GIT_REPOSITORY https://github.com/bshoshany/thread-pool.git
-    GIT_TAG v5.0.0
+    GIT_TAG v4.0.1
 )
 FetchContent_MakeAvailable(bs_thread_pool)
 
@@ -46,7 +44,7 @@ FetchContent_MakeAvailable(QuickFIX)
 FetchContent_Declare(
     ConcurrentQueue
     GIT_REPOSITORY https://github.com/cameron314/concurrentqueue.git
-    GIT_TAG v1.0.4
+    GIT_TAG master
 )
 FetchContent_MakeAvailable(ConcurrentQueue)
 
