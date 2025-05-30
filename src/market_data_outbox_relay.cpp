@@ -2,8 +2,8 @@
 #include "constants.h"
 #include "app_market_data_outbox_message.pb.h"
 
-MarketDataOutboxRelay::MarketDataOutboxRelay(RabbitMQConnector &rabbitmq_connector)
-    : rabbitmq_connector(rabbitmq_connector)
+MarketDataOutboxRelay::MarketDataOutboxRelay(RedisConnector &redis_connector)
+    : redis_connector(redis_connector)
 {
     connection = pqxx::connection(database_connection_string);
 }
@@ -69,7 +69,7 @@ void MarketDataOutboxRelay::process_outbox_messages()
         }
 
         std::string serialized_message_list = app_market_data_outbox_message_list.SerializeAsString();
-        bool publish_result = rabbitmq_connector.publishMessage(serialized_message_list);
+        bool publish_result = redis_connector.publishMessage(serialized_message_list);
         if (publish_result)
         {
             work.exec_params(purge_outbox_messages_query, pqxx::params{ids});

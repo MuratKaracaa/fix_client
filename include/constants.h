@@ -23,12 +23,9 @@ const std::string kafka_queue_buffering_max_messages = AppConfigLoader::get_env_
 const std::string kafka_queue_buffering_max_kbytes = AppConfigLoader::get_env_or_default("KAFKA_QUEUE_BUFFERING_MAX_KBYTES", "4194304");
 const std::string kafka_topic_name = AppConfigLoader::get_env_or_default("KAFKA_EXECUTION_REPORT_TOPIC_NAME", "execution_report");
 
-const std::string rabbitmq_hostname = AppConfigLoader::get_env_required("RABBITMQ_HOSTNAME");
-const int rabbitmq_port = std::stoi(AppConfigLoader::get_env_required("RABBITMQ_PORT"));
-const std::string rabbitmq_username = AppConfigLoader::get_env_required("RABBITMQ_USERNAME");
-const std::string rabbitmq_password = AppConfigLoader::get_env_required("RABBITMQ_PASSWORD");
-const std::string rabbitmq_queue_name = AppConfigLoader::get_env_or_default("RABBITMQ_QUEUE_NAME", "stock_update_outbox");
-const std::string rabbitmq_exchange_name = AppConfigLoader::get_env_or_default("RABBITMQ_EXCHANGE_NAME", "market_data_fanout");
+const std::string redis_hostname = AppConfigLoader::get_env_required("REDIS_HOST");
+const int redis_port = std::stoi(AppConfigLoader::get_env_required("REDIS_PORT"));
+const std::string market_data_publish_channel = AppConfigLoader::get_env_or_default("REDIS_CHANNEL", "market_data_publish_channel");
 
 const std::string database_connection_string = AppConfigLoader::get_env_required("DATABASE_CONNECTION_STRING");
 

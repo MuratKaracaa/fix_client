@@ -11,7 +11,7 @@
 #include "order_side.h"
 #include "client_application.h"
 #include "incoming_order_relay.h"
-#include "rabbit_mq_connector.h"
+#include "redis_connector.h"
 #include "market_data_outbox_relay.h"
 #include "FileStore.h"
 #include "FileLog.h"
@@ -26,22 +26,12 @@ int main()
     try
     {
         KafkaConnector kafka_connector;
-        RabbitMQConnector rabbitmq_connector;
-
-        if (!rabbitmq_connector.connect())
-        {
-            throw std::runtime_error("Failed to connect to RabbitMQ");
-        }
-
-        if (!rabbitmq_connector.setupFanoutExchange(rabbitmq_exchange_name))
-        {
-            throw std::runtime_error("Failed to setup fanout exchange");
-        }
+        RedisConnector redis_connector;
 
         ExecutionReportConsumer execution_report_consumer(execution_report_queue, kafka_connector);
         MarketDataConsumer market_data_consumer(market_data_update_queue, 8, 1024);
         IncomingOrderRelay incoming_order_relay(session_id);
-        MarketDataOutboxRelay market_data_outbox_relay(rabbitmq_connector);
+        MarketDataOutboxRelay market_data_outbox_relay(redis_connector);
 
         std::string config_file = "fix_client.cfg";
         FIX::SessionSettings session_settings(config_file);

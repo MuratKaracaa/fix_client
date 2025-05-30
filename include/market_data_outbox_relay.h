@@ -1,19 +1,20 @@
+#pragma once
 
 #include <thread>
 #include "pqxx/pqxx"
-#include "rabbit_mq_connector.h"
+#include "redis_connector.h"
 
 class MarketDataOutboxRelay
 {
 private:
     std::thread worker_thread;
     pqxx::connection connection;
-    RabbitMQConnector &rabbitmq_connector;
+    RedisConnector &redis_connector;
 
     void process_outbox_messages();
 
 public:
-    MarketDataOutboxRelay(RabbitMQConnector &rabbitmq_connector);
+    MarketDataOutboxRelay(RedisConnector &redis_connector);
 
     void start();
     void stop();
