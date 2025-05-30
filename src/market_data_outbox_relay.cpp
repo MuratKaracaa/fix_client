@@ -29,12 +29,16 @@ void MarketDataOutboxRelay::process_outbox_messages()
         pqxx::result result = work.exec(fetch_outbox_messages_query);
 
         std::unordered_map<std::string, std::pair<std::string, double>> latest_data_map;
+        std::vector<int> ids;
+        ids.reserve(result.size());
 
         for (const auto &row : result)
         {
             std::string stock_symbol = row["stock_symbol"].as<std::string>();
             std::string timestamp = row["latest_trading_price_time_stamp"].as<std::string>();
             double latest_price = row["latest_trading_price"].as<double>();
+            int id = row["id"].as<int>();
+            ids.emplace_back(id);
 
             if (latest_data_map.contains(stock_symbol))
             {
@@ -68,7 +72,7 @@ void MarketDataOutboxRelay::process_outbox_messages()
         bool publish_result = rabbitmq_connector.publishMessage(serialized_message_list);
         if (publish_result)
         {
-            work.exec(purge_outbox_messages_query);
+            work.exec_params(purge_outbox_messages_query, pqxx::params{ids});
             work.commit();
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));

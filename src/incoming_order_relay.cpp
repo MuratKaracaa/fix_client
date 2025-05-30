@@ -31,9 +31,12 @@ void IncomingOrderRelay::process_incoming_orders()
         {
             pqxx::work work(connection);
             pqxx::result result = work.exec(fetch_incoming_orders_query);
+            std::vector<std::string> ids;
+            ids.reserve(result.size());
             for (const auto &row : result)
             {
                 std::string order_id = row["order_id"].as<std::string>();
+                ids.emplace_back(order_id);
                 std::string symbol = row["symbol"].as<std::string>();
                 OrderType type = static_cast<OrderType>(row["type"].as<int>());
                 OrderSide side = static_cast<OrderSide>(row["side"].as<int>());
@@ -61,7 +64,7 @@ void IncomingOrderRelay::process_incoming_orders()
                 FIX::Session::sendToTarget(new_order_single, session_id);
             }
 
-            work.exec(purge_incoming_orders_query);
+            work.exec_params(purge_incoming_orders_query, pqxx::params{ids});
             work.commit();
         }
         catch (const std::exception &e)
