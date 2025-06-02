@@ -79,8 +79,9 @@ flowchart TD
 
 - Implements transactional outbox pattern
 - Polls outbox table for stock updates
-- Publishes updates to Redis
+- Serializes updates using Protocol Buffers and publishes them to Redis
 - Ensures reliable delivery of market data
+- Publishes timeseries data for further analysis
 
 ## Performance Considerations
 
