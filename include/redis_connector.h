@@ -4,6 +4,13 @@
 #include <cstring>
 #include "hiredis.h"
 
+/**
+ * @brief RedisConnector is a wrapper class for the hiredis library.
+ * It provides a simple interface for appending commands to a Redis pipeline and getting replies.
+ * It also provides a simple interface for freeing replies.
+ *
+ * @note This class is not thread-safe. Append commands to a Redis pipeline and get replies in a single thread.
+ */
 class RedisConnector
 {
 private:
@@ -13,5 +20,9 @@ public:
     RedisConnector();
     ~RedisConnector() noexcept;
 
-    bool publish_message_and_add_timeseries_data(std::unordered_map<std::string, std::pair<std::string, double>> &latest_data_map);
+    bool append_publish_command(const std::string &channel, const std::string &message);
+    bool append_timeseries_command(const std::string &key, int64_t timestamp, double value);
+
+    redisReply *get_reply();
+    void free_reply(redisReply *reply);
 };
