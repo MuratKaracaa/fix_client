@@ -38,7 +38,7 @@ void MarketDataOutboxRelay::process_outbox_messages()
             std::string timestamp = row["latest_trading_price_time_stamp"].as<std::string>();
             double latest_price = row["latest_trading_price"].as<double>();
             int id = row["id"].as<int>();
-            ids.emplace_back(id);
+            ids.push_back(std::move(id));
 
             if (latest_data_map.contains(stock_symbol))
             {
@@ -55,21 +55,7 @@ void MarketDataOutboxRelay::process_outbox_messages()
             }
         }
 
-        AppMarketDataOutboxMessageList app_market_data_outbox_message_list;
-        auto *messages = app_market_data_outbox_message_list.mutable_messages();
-        messages->Reserve(latest_data_map.size());
-
-        for (const auto &[stock_symbol, pair] : latest_data_map)
-        {
-            AppMarketDataOutboxMessage app_market_data_outbox_message;
-            app_market_data_outbox_message.set_stock_symbol(stock_symbol);
-            app_market_data_outbox_message.set_latest_price(pair.second);
-            app_market_data_outbox_message.set_timestamp(pair.first);
-            messages->Add(std::move(app_market_data_outbox_message));
-        }
-
-        std::string serialized_message_list = app_market_data_outbox_message_list.SerializeAsString();
-        bool publish_result = redis_connector.publishMessage(serialized_message_list);
+        bool publish_result = redis_connector.publish_message_and_add_timeseries_data(latest_data_map);
         if (publish_result)
         {
             work.exec_params(purge_outbox_messages_query, pqxx::params{ids});

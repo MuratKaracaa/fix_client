@@ -13,5 +13,5 @@ public:
     RedisConnector();
     ~RedisConnector() noexcept;
 
-    bool publishMessage(const std::string &message);
+    bool publish_message_and_add_timeseries_data(std::unordered_map<std::string, std::pair<std::string, double>> &latest_data_map);
 };

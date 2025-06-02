@@ -60,7 +60,7 @@ void MarketDataConsumer::stop()
     AppMarketData app_market_data;
     while (market_data_queue.try_dequeue(app_market_data))
     {
-        app_market_data_vector.emplace_back(std::move(app_market_data));
+        app_market_data_vector.push_back(std::move(app_market_data));
     }
 
     process_messages(app_market_data_vector, connections[0], app_market_data_vector.size());

@@ -36,7 +36,7 @@ void IncomingOrderRelay::process_incoming_orders()
             for (const auto &row : result)
             {
                 std::string order_id = row["order_id"].as<std::string>();
-                ids.emplace_back(order_id);
+                ids.push_back(std::move(order_id));
                 std::string symbol = row["symbol"].as<std::string>();
                 OrderType type = static_cast<OrderType>(row["type"].as<int>());
                 OrderSide side = static_cast<OrderSide>(row["side"].as<int>());
