@@ -63,11 +63,7 @@ std::optional<AppMarketData> Mapper::toAppMarketData(const FIX42::MarketDataSnap
                 {
                     FIX::MDEntryDate entryDate;
                     group.get(entryDate);
-
-                    FIX::MDEntryTime entryTime;
-                    group.get(entryTime);
-
-                    timestamp = entryDate.getString() + "-" + entryTime.getString();
+                    timestamp = entryDate.getString();
                 }
                 catch (const std::exception &e)
                 {

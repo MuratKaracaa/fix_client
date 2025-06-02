@@ -1,7 +1,5 @@
 #include "incoming_order_relay.h"
 #include "constants.h"
-#include "order_side.h"
-#include "order_type.h"
 #include "NewOrderSingle.h"
 
 IncomingOrderRelay::IncomingOrderRelay(FIX::SessionID &session_id)
@@ -38,8 +36,10 @@ void IncomingOrderRelay::process_incoming_orders()
                 std::string order_id = row["order_id"].as<std::string>();
                 ids.push_back(std::move(order_id));
                 std::string symbol = row["symbol"].as<std::string>();
-                OrderType type = static_cast<OrderType>(row["type"].as<int>());
-                OrderSide side = static_cast<OrderSide>(row["side"].as<int>());
+                std::string type = row["type"].as<std::string>();
+                std::string side = row["side"].as<std::string>();
+                FIX::OrdType ord_type = FIX::OrdType(type[0]);
+                FIX::Side ord_side = FIX::Side(side[0]);
                 std::string quantity = row["quantity"].as<std::string>();
                 std::string price = row["price"].as<std::string>();
                 std::string timestamp = row["timestamp"].as<std::string>();
@@ -47,16 +47,14 @@ void IncomingOrderRelay::process_incoming_orders()
                 FIX42::NewOrderSingle new_order_single;
                 new_order_single.set(FIX::ClOrdID(order_id));
                 new_order_single.set(FIX::Symbol(symbol));
-                FIX::Side fix_side = (side == OrderSide::BUY) ? FIX::Side_BUY : FIX::Side_SELL;
-                new_order_single.set(fix_side);
+                new_order_single.set(ord_side);
                 FIX::TransactTime transact_time;
                 transact_time.setString(timestamp);
                 new_order_single.set(transact_time);
                 new_order_single.set(FIX::OrderQty(std::stod(quantity)));
-                FIX::OrdType fix_ord_type = (type == OrderType::LIMIT) ? FIX::OrdType_LIMIT : FIX::OrdType_MARKET;
-                new_order_single.set(fix_ord_type);
+                new_order_single.set(ord_type);
 
-                if (type == OrderType::LIMIT)
+                if (ord_type == FIX::OrdType_LIMIT)
                 {
                     new_order_single.set(FIX::Price(std::stod(price)));
                 }

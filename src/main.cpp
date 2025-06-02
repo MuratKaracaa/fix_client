@@ -8,7 +8,6 @@
 #include "market_data_consumer.h"
 #include "Session.h"
 #include <iostream>
-#include "order_side.h"
 #include "client_application.h"
 #include "incoming_order_relay.h"
 #include "redis_connector.h"
