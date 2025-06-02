@@ -30,7 +30,7 @@ void IncomingOrderRelay::process_incoming_orders()
         try
         {
             pqxx::work work(connection);
-            pqxx::result result = work.exec(fetch_incoming_orders_query);
+            pqxx::result result = work.exec(fetch_incoming_orders_outbox_query);
             std::vector<std::string> ids;
             ids.reserve(result.size());
             for (const auto &row : result)
@@ -64,7 +64,7 @@ void IncomingOrderRelay::process_incoming_orders()
                 FIX::Session::sendToTarget(new_order_single, session_id);
             }
 
-            work.exec_params(purge_incoming_orders_query, pqxx::params{ids});
+            work.exec_params(purge_incoming_orders_outbox_query, pqxx::params{ids});
             work.commit();
         }
         catch (const std::exception &e)

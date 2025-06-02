@@ -30,6 +30,6 @@ const std::string market_data_publish_channel = AppConfigLoader::get_env_or_defa
 const std::string database_connection_string = AppConfigLoader::get_env_required("DATABASE_CONNECTION_STRING");
 
 const std::string fetch_outbox_messages_query = "SELECT * FROM stock_update_outbox";
-const std::string fetch_incoming_orders_query = "SELECT * FROM incoming_orders";
+const std::string fetch_incoming_orders_outbox_query = "SELECT * FROM incoming_orders_outbox";
 const std::string purge_outbox_messages_query = "DELETE FROM stock_update_outbox where id = ANY($1)";
-const std::string purge_incoming_orders_query = "DELETE FROM incoming_orders where order_id = ANY($1)";
+const std::string purge_incoming_orders_outbox_query = "DELETE FROM incoming_orders_outbox where order_id = ANY($1)";
